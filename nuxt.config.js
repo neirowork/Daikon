@@ -34,6 +34,9 @@ module.exports = {
         })
       }
     }
+  },
+  proxy: {
+    '/api': 'https://rti-giken.jp/fhc/api/train_tetsudo',
   }
 }
 
