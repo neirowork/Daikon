@@ -74,6 +74,7 @@ export default {
 <style scoped>
 .container {
   margin: 5% 5%;
+  text-align: center;
 }
 .row {
   font-size: 0;
