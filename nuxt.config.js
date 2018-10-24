@@ -35,8 +35,14 @@ module.exports = {
       }
     }
   },
+  modules: [
+    '@nuxtjs/axios',
+    '@nuxtjs/proxy',
+  ],
+  axios: {
+  },
   proxy: {
-    '/api': 'https://rti-giken.jp/fhc/api/train_tetsudo',
+    '/fhc': 'https://rti-giken.jp',
   }
 }
 

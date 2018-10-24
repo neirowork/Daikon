@@ -1,53 +1,82 @@
 <template>
   <div class="container">
-    <div class="row">
-      <div class="column">
-        <div class="card">
-          <div class="card-status"><span class="status-circle ok"/>宇都宮線</div>
-        </div>
-        <div class="card">
-          <div class="card-status"><span class="status-circle ok"/>宇都宮線</div>
-        </div>
-      </div>
-      <div class="column">
-        <div class="card">
-          <div class="card-status"><span class="status-circle ng"/>aA</div>
-        </div>
-        <div class="card">
-          <div class="card-status"><span class="status-circle ok"/>宇都宮線</div>
-        </div>
-      </div>
-      <div class="column">
-        <div class="card">
-          <div class="card-status"><span class="status-circle ok"/>宇都宮線</div>
-        </div>
-        <div class="card">
-          <div class="card-status"><span class="status-circle ok"/>宇都宮線</div>
-        </div>
-      </div>
-    </div>
+    <app-card
+      v-for="(data, index) in column"
+      :key="index"
+      :data="data"/>
   </div>
 </template>
 
 <script>
+import AppCard from '~/components/AppCard'
+import axios from 'axios'
+import _lines from '~/assets/lines.json'
+
 export default {
-  
+  components: { AppCard },
+  data() {
+    return {
+      column: [],
+    }
+  },
+  created() {
+    this.lines = require('~/assets/lines.json')
+  },
+  mounted() {
+    const lines = Object.assign({}, this.lines)
+
+    axios
+      .get('/fhc/api/train_tetsudo/delay.json',
+      {
+        mode: 'no-cors',
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+      })
+      .then(res => {
+        
+        const delays = res.data
+
+        Object.keys(lines).forEach(company => {
+          lines[company].forEach(line => {
+
+            delays.forEach(delay => {
+
+              if(delay.company == company && delay.name == line) {
+                
+                this.column.push({
+                  company: company,
+                  name: line,
+                  status: 'ng'
+                })
+
+              }
+
+            })
+
+          })
+        })
+
+        if(this.column.length === 0) {
+          this.column.push({
+            name: '遅延情報はありません',
+            status: 'ok'
+          })
+        }
+
+      })
+    
+  }
 }
 </script>
 
 <style scoped>
 .container {
-  margin: 50px 5%;
+  margin: 5% 5%;
 }
 .row {
   font-size: 0;
-}
-
-.column {
-  width: 33.3%;
-  display: inline-block;
-  font-size: 1rem;
-  vertical-align: top;
 }
 
 @media screen and (max-width: 800px) {
@@ -59,31 +88,4 @@ export default {
   }
 
 }
-
-.card {
-  margin: 5px;
-  padding: 10px;
-  background-color: #ffffff;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-  color: #666666;
-  font-size: 2em;
-  font-weight: bold;
-  text-align: center;
-}
-
-.status-circle::before {
-  display: inline-block;
-  position: relative;
-  vertical-align: middle;
-  content: '';
-  width: 20px;
-  height: 20px;
-  margin: 10px;
-  top: -0.1em;
-  border-radius: 50%;
-  background-color: #222222;
-}
-
-.status-circle.ok::before { background-color: #0bc01a; }
-.status-circle.ng::before { background-color: #c00b0b; }
 </style>
