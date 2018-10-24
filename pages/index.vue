@@ -1,65 +1,92 @@
 <template>
-  <section class="container">
-    <div>
-      <app-logo/>
-      <h1 class="title">
-        daikon
-      </h1>
-      <h2 class="subtitle">
-        train isdelay application
-      </h2>
-      <div class="links">
-        <a
-          href="https://nuxtjs.org/"
-          target="_blank"
-          class="button--green">Documentation</a>
-        <a
-          href="https://github.com/nuxt/nuxt.js"
-          target="_blank"
-          class="button--grey">GitHub</a>
-      </div>
-    </div>
-  </section>
+  <div class="container">
+    <app-card
+      v-for="(data, index) in column"
+      :key="index"
+      :data="data"/>
+  </div>
 </template>
 
 <script>
-import AppLogo from '~/components/AppLogo.vue'
+import AppCard from '~/components/AppCard'
+import axios from 'axios'
+import _lines from '~/assets/lines.json'
 
 export default {
-  components: {
-    AppLogo
+  components: { AppCard },
+  data() {
+    return {
+      column: [],
+    }
+  },
+  created() {
+    this.lines = require('~/assets/lines.json')
+  },
+  mounted() {
+    const lines = Object.assign({}, this.lines)
+
+    axios
+      .get('/fhc/api/train_tetsudo/delay.json',
+      {
+        mode: 'no-cors',
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+      })
+      .then(res => {
+        
+        const delays = res.data
+
+        Object.keys(lines).forEach(company => {
+          lines[company].forEach(line => {
+
+            delays.forEach(delay => {
+
+              if(delay.company == company && delay.name == line) {
+                
+                this.column.push({
+                  company: company,
+                  name: line,
+                  status: 'ng'
+                })
+
+              }
+
+            })
+
+          })
+        })
+
+        if(this.column.length === 0) {
+          this.column.push({
+            name: '遅延情報はありません',
+            status: 'ok'
+          })
+        }
+
+      })
+    
   }
 }
 </script>
 
-<style>
+<style scoped>
 .container {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  margin: 5% 5%;
   text-align: center;
 }
-
-.title {
-  font-family: "Quicksand", "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; /* 1 */
-  display: block;
-  font-weight: 300;
-  font-size: 100px;
-  color: #35495e;
-  letter-spacing: 1px;
+.row {
+  font-size: 0;
 }
 
-.subtitle {
-  font-weight: 300;
-  font-size: 42px;
-  color: #526488;
-  word-spacing: 5px;
-  padding-bottom: 15px;
-}
+@media screen and (max-width: 800px) {
 
-.links {
-  padding-top: 15px;
+  .column {
+    width: 100%;
+    display: block;
+    font-size: 1rem;
+  }
+
 }
 </style>
-
